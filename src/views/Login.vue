@@ -1,5 +1,13 @@
 <template>
   <v-app class="bg-green">
+    <v-overlay :value="isLoading">
+      <v-progress-circular
+        indeterminate
+        size="64"
+        color="primary"
+      ></v-progress-circular>
+    </v-overlay>
+
     <v-app-bar color="white" elevation="0">
       <v-container>
         <v-row align="center">
@@ -143,12 +151,14 @@
 </template>
 
 <script>
+import { mapActions } from "vuex";
 export default {
   name: "login",
   data() {
     return {
       isLoginMode: true,
       isPasswordVisible: false,
+      isLoading: false,
       formData: {
         username: "",
         email: "",
@@ -231,17 +241,67 @@ export default {
     async handleSubmit() {
       try {
         if (this.isLoginMode) {
-          // Handle login
-          console.log("Login:", {
-            username: this.formData.username,
-            password: this.formData.password,
-          });
+          await this.handleLogin();
         } else {
-          // Handle signup
-          console.log("Signup:", this.formData);
+          await this.handleSignup();
         }
       } catch (error) {
         console.error("Error:", error);
+      }
+    },
+    ...mapActions(["login", "logout"]),
+
+    async handleLogin() {
+      try {
+        this.isLoading = true;
+        const response = await this.axios.post("auth/login", {
+          username: this.formData.username,
+          password: this.formData.password,
+        });
+        if (response.data.success) {
+          this.login();
+          this.successMessage = "Login successful!";
+          this.successDialog = true;
+          setTimeout(() => {
+            this.$router.push("/");
+          }, 1500);
+        } else {
+          alert("เกิดข้อผิดพลาดในการเข้าสู่ระบบ");
+        }
+      } catch (error) {
+        console.error("Error:", error);
+        alert("เกิดข้อผิดพลาด");
+      } finally {
+        setTimeout(() => {
+          this.isLoading = false;
+        }, 1500);
+      }
+    },
+    async handleSignup() {
+      try {
+        this.isLoading = true;
+        const response = await this.axios.post("/users", {
+          username: this.formData.username,
+          password: this.formData.password,
+          email: this.formData.email,
+        });
+        if (response.data.success) {
+          this.login();
+          this.successMessage = "create account successful!";
+          this.successDialog = true;
+          setTimeout(() => {
+            this.$router.push("/");
+          }, 1500);
+        } else {
+          alert("เกิดข้อผิดพลาดในการสร้างบัญชีผู้ใช้");
+        }
+      } catch (error) {
+        console.error("Error:", error);
+        alert("เกิดข้อผิดพลาด");
+      } finally {
+        setTimeout(() => {
+          this.isLoading = false;
+        }, 1500);
       }
     },
   },
