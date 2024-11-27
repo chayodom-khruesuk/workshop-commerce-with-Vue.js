@@ -1,20 +1,42 @@
 <template>
   <v-app class="bg-green">
-    <NavBar />
-    <v-container>
-      <v-row justify="space-between">
-        <v-col cols="12" md="6">
-          <div>
-            <v-img src="../assets/logo_shop.png" height="450px" contain></v-img>
-            <h1 class="text-darken-4 text text-center mt-4">
+    <v-app-bar color="white" elevation="0">
+      <v-container>
+        <v-row align="center">
+          <v-col class="d-flex align-center">
+            <div class="d-flex align-center">
+              <v-btn icon class="mr-4" @click="navigatorToHome">
+                <v-icon>mdi-home</v-icon>
+              </v-btn>
+              <span
+                class
+                style="color: black; font-size: 22px; font-weight: bold"
+                >เข้าสู่ระบบ</span
+              >
+            </div>
+          </v-col>
+        </v-row>
+      </v-container>
+    </v-app-bar>
+
+    <v-container class="fill-height">
+      <v-row justify="center" align="center">
+        <!-- Left side - Image and Text -->
+        <v-col cols="12" md="6" class="text-center">
+          <div class="left-content">
+            <v-img src="../assets/full_logo.png" height="500px" contain></v-img>
+            <h1 class="text-darken-4 text">
               แหล่งช้อปปิ้งออนไลน์ที่ใหญ่ที่สุด<br />ในภาคใต้ของประเทศไทย
             </h1>
           </div>
         </v-col>
-        <v-col cols="12" md="6">
+
+        <!-- Right side - Login Card -->
+        <v-col cols="12" md="6" class="d-flex justify-center align-center">
           <v-card class="pa-6" max-width="400">
-            <v-card-title class="text-center">เข้าสู่ระบบ</v-card-title>
-            <!-- Field  Username -->
+            <v-card-title class="text-center">สมัครใหม่</v-card-title>
+
+            <!-- Field Username -->
             <div class="input-margin">
               <input
                 type="text"
@@ -33,6 +55,7 @@
                 กรุณากรอกชื่อผู้ใช้งาน
               </span>
             </div>
+
             <!-- Field Password -->
             <div class="input-margin password-container">
               <input
@@ -49,9 +72,6 @@
                 type="button"
                 class="password-toggle"
                 @click="togglePassword"
-                :class="{
-                  'error-adjust': hasInteracted.password && !isPasswordValid,
-                }"
               >
                 <i
                   :class="isPasswordVisible ? 'fas fa-eye' : 'fas fa-eye-slash'"
@@ -64,6 +84,7 @@
                 กรุณากรอกรหัสผ่าน
               </span>
             </div>
+
             <!-- Button Login -->
             <button
               class="btn-login input-margin"
@@ -90,12 +111,8 @@
 </template>
 
 <script>
-import NavBar from "../components/NavBar.vue";
 export default {
   name: "login",
-  components: {
-    NavBar,
-  },
   data() {
     return {
       username: "",
@@ -112,7 +129,10 @@ export default {
       this.isPasswordVisible = !this.isPasswordVisible;
     },
     navigateToSignup() {
-      this.$router.push("/Signup");
+      this.$router.push("/signup");
+    },
+    navigatorToHome() {
+      this.$router.push("/");
     },
   },
   computed: {
@@ -130,6 +150,10 @@ export default {
 </script>
 
 <style>
+.v-app-bar {
+  min-height: 80px !important;
+}
+
 .signup-btn {
   color: rgb(236, 78, 78);
   font-size: 14px;
@@ -138,7 +162,10 @@ export default {
 
 .text {
   font-weight: bold;
-  color: #bfc9ca;
+  color: #e5efef;
+  position: absolute;
+  bottom: 5%;
+  font-size: 27px;
 }
 
 .text-lable {
@@ -147,7 +174,7 @@ export default {
 }
 
 .bg-green {
-  background-color: #39df7e !important;
+  background-color: #17bb5b !important;
 }
 
 .input-btn {
@@ -156,11 +183,12 @@ export default {
   border: 2px solid #e1e1e1;
   border-radius: 8px;
   font-size: 16px;
-  transition: border-color 0.3s ease;
 }
 
 .input-margin {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
+  position: relative;
+  min-height: 60px;
 }
 
 .btn-login {
@@ -185,16 +213,10 @@ export default {
 .password-toggle {
   position: absolute;
   right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
+  top: 12px;
   background: none;
   border: none;
   cursor: pointer;
-  transition: top 0.3s ease;
-}
-
-.password-toggle.error-adjust {
-  top: 35%;
 }
 
 .password-toggle i {
@@ -204,12 +226,22 @@ export default {
 
 .error-message {
   color: red;
-  font-size: 14px;
-  margin-top: 5px;
-  display: block;
+  font-size: 12px;
+  position: absolute;
+  bottom: -12px;
+  left: 0;
 }
 
 .error-border {
   border-color: red !important;
+}
+
+.left-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin-top: -100px;
 }
 </style>
