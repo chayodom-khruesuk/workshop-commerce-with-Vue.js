@@ -259,7 +259,7 @@ export default {
           password: this.formData.password,
         });
         if (response.data.success) {
-          this.login();
+          this.login(this.formData.username);
           this.successMessage = "Login successful!";
           this.successDialog = true;
           setTimeout(() => {

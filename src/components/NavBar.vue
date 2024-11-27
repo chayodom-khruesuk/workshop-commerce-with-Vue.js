@@ -27,13 +27,20 @@
             <span class="btn-text">Calculate Grade</span>
           </v-btn>
 
+          <!-- Replace login button with username display when logged in -->
           <v-btn
+            v-if="!$store.state.username"
             text
             :to="{ name: 'login' }"
             class="nav-btn"
             :class="{ 'active-text': $route.name === 'login' }"
           >
             <span class="btn-text">Login</span>
+          </v-btn>
+
+          <v-btn v-else text class="nav-btn">
+            <v-icon left>mdi-account</v-icon>
+            <span class="btn-text">{{ $store.state.username }}</span>
           </v-btn>
         </div>
       </div>
