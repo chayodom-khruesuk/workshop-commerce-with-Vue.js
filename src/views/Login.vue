@@ -5,14 +5,20 @@
         <v-row align="center">
           <v-col class="d-flex align-center">
             <div class="d-flex align-center">
-              <v-btn icon class="mr-4" @click="navigatorToHome">
+              <v-btn
+                v-if="isLoginMode"
+                icon
+                class="mr-4"
+                @click="navigatorToHome"
+              >
                 <v-icon>mdi-home</v-icon>
               </v-btn>
               <span
                 class
                 style="color: black; font-size: 22px; font-weight: bold"
-                >เข้าสู่ระบบ</span
               >
+                {{ isLoginMode ? "เข้าสู่ระบบ" : "สมัครใหม่" }}
+              </span>
             </div>
           </v-col>
         </v-row>
@@ -21,7 +27,6 @@
 
     <v-container class="fill-height">
       <v-row justify="center" align="center">
-        <!-- Left side - Image and Text -->
         <v-col cols="12" md="6" class="text-center">
           <div class="left-content">
             <v-img src="../assets/full_logo.png" height="500px" contain></v-img>
@@ -31,42 +36,45 @@
           </div>
         </v-col>
 
-        <!-- Right side - Login Card -->
         <v-col cols="12" md="6" class="d-flex justify-center align-center">
           <v-card class="pa-6" max-width="400">
-            <v-card-title class="text-center">สมัครใหม่</v-card-title>
+            <v-card-title class="text-center">
+              {{ isLoginMode ? "เข้าสู่ระบบ" : "สมัครใหม่" }}
+            </v-card-title>
 
-            <!-- Field Username -->
             <div class="input-margin">
               <input
                 type="text"
-                v-model="username"
-                :class="{
-                  'input-btn': true,
-                  'error-border': hasInteracted.username && !isUsernameValid,
-                }"
+                v-model="formData.username"
+                :class="getInputClass('username')"
                 placeholder="ชื่อผู้ใช้งาน"
-                @blur="hasInteracted.username = true"
+                @blur="setInteracted('username')"
               />
-              <span
-                v-if="hasInteracted.username && !isUsernameValid"
-                class="error-message"
-              >
+              <span v-if="showError('username')" class="error-message">
                 กรุณากรอกชื่อผู้ใช้งาน
               </span>
             </div>
 
-            <!-- Field Password -->
+            <div v-if="!isLoginMode" class="input-margin">
+              <input
+                type="email"
+                v-model="formData.email"
+                :class="getInputClass('email')"
+                placeholder="อีเมล"
+                @blur="setInteracted('email')"
+              />
+              <span v-if="showError('email')" class="error-message">
+                {{ getEmailErrorMessage() }}
+              </span>
+            </div>
+
             <div class="input-margin password-container">
               <input
                 :type="isPasswordVisible ? 'text' : 'password'"
-                v-model="password"
-                :class="{
-                  'input-btn': true,
-                  'error-border': hasInteracted.password && !isPasswordValid,
-                }"
+                v-model="formData.password"
+                :class="getInputClass('password')"
                 placeholder="รหัสผ่าน"
-                @blur="hasInteracted.password = true"
+                @blur="setInteracted('password')"
               />
               <button
                 type="button"
@@ -77,30 +85,54 @@
                   :class="isPasswordVisible ? 'fas fa-eye' : 'fas fa-eye-slash'"
                 ></i>
               </button>
-              <span
-                v-if="hasInteracted.password && !isPasswordValid"
-                class="error-message"
-              >
+              <span v-if="showError('password')" class="error-message">
                 กรุณากรอกรหัสผ่าน
               </span>
             </div>
 
-            <!-- Button Login -->
+            <div v-if="!isLoginMode" class="input-margin password-container">
+              <input
+                :type="isPasswordVisible ? 'text' : 'password'"
+                v-model="formData.confirmPassword"
+                :class="getInputClass('confirmPassword')"
+                placeholder="ยืนยันรหัสผ่าน"
+                @blur="setInteracted('confirmPassword')"
+              />
+              <button
+                type="button"
+                class="password-toggle"
+                @click="togglePassword"
+              >
+                <i
+                  :class="isPasswordVisible ? 'fas fa-eye' : 'fas fa-eye-slash'"
+                ></i>
+              </button>
+              <span v-if="showError('confirmPassword')" class="error-message">
+                กรุณายืนยันรหัสผ่าน
+              </span>
+            </div>
+
             <button
               class="btn-login input-margin"
               :class="{ 'btn-disabled': !isFormValid }"
               :disabled="!isFormValid"
+              @click="handleSubmit"
             >
-              เข้าสู่ระบบ
+              {{ isLoginMode ? "เข้าสู่ระบบ" : "สมัครบัญชีผู้ใช้" }}
             </button>
+
             <label class="text-lable">
-              เพิ่งเคยเข้ามาใน NetyShop ใช่หรือไม่
+              {{
+                isLoginMode
+                  ? "เพิ่งเคยเข้ามาใน NetyShop ใช่หรือไม่"
+                  : "หากมีบัญชีผู้ใช้แล้ว คุณสามารถ"
+              }}
               <button
                 type="button"
-                class="signup-btn"
-                @click="navigateToSignup"
+                :class="isLoginMode ? 'signup-btn' : 'login-btn'"
+                @click="toggleMode"
               >
-                สมัครใหม่
+                {{ isLoginMode ? "สมัครใหม่" : "เข้าสู่ระบบ" }}
               </button>
             </label>
           </v-card>
@@ -115,35 +147,115 @@ export default {
   name: "login",
   data() {
     return {
-      username: "",
-      password: "",
+      isLoginMode: true,
       isPasswordVisible: false,
+      formData: {
+        username: "",
+        email: "",
+        password: "",
+        confirmPassword: "",
+      },
       hasInteracted: {
         username: false,
+        email: false,
         password: false,
+        confirmPassword: false,
       },
     };
   },
   methods: {
+    toggleMode() {
+      this.isLoginMode = !this.isLoginMode;
+      this.resetForm();
+    },
     togglePassword() {
       this.isPasswordVisible = !this.isPasswordVisible;
-    },
-    navigateToSignup() {
-      this.$router.push("/signup");
     },
     navigatorToHome() {
       this.$router.push("/");
     },
+    resetForm() {
+      this.formData = {
+        username: "",
+        email: "",
+        password: "",
+        confirmPassword: "",
+      };
+      this.hasInteracted = {
+        username: false,
+        email: false,
+        password: false,
+        confirmPassword: false,
+      };
+    },
+    setInteracted(field) {
+      this.hasInteracted[field] = true;
+    },
+    getInputClass(field) {
+      return {
+        "input-btn": true,
+        "error-border":
+          this.hasInteracted[field] && !this.getFieldValidation(field),
+      };
+    },
+    showError(field) {
+      return this.hasInteracted[field] && !this.getFieldValidation(field);
+    },
+    getEmailErrorMessage() {
+      return this.formData.email.trim().length === 0
+        ? "กรุณากรอกอีเมล"
+        : "กรุณากรอกอีเมลให้ถูกต้อง";
+    },
+    getFieldValidation(field) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+      switch (field) {
+        case "username":
+          return this.formData.username.trim().length > 0;
+        case "email":
+          return (
+            this.formData.email.trim().length > 0 &&
+            emailRegex.test(this.formData.email)
+          );
+        case "password":
+          return this.formData.password.trim().length > 0;
+        case "confirmPassword":
+          return (
+            this.formData.confirmPassword === this.formData.password &&
+            this.formData.confirmPassword.trim().length > 0
+          );
+        default:
+          return false;
+      }
+    },
+    async handleSubmit() {
+      try {
+        if (this.isLoginMode) {
+          // Handle login
+          console.log("Login:", {
+            username: this.formData.username,
+            password: this.formData.password,
+          });
+        } else {
+          // Handle signup
+          console.log("Signup:", this.formData);
+        }
+      } catch (error) {
+        console.error("Error:", error);
+      }
+    },
   },
   computed: {
-    isUsernameValid() {
-      return this.username.trim().length > 0;
-    },
-    isPasswordValid() {
-      return this.password.trim().length > 0;
-    },
     isFormValid() {
-      return this.isUsernameValid && this.isPasswordValid;
+      const baseValidation =
+        this.getFieldValidation("username") &&
+        this.getFieldValidation("password");
+
+      return this.isLoginMode
+        ? baseValidation
+        : baseValidation &&
+            this.getFieldValidation("email") &&
+            this.getFieldValidation("confirmPassword");
     },
   },
 };
@@ -154,10 +266,11 @@ export default {
   min-height: 80px !important;
 }
 
+.login-btn,
 .signup-btn {
-  color: rgb(236, 78, 78);
   font-size: 14px;
   font-weight: bold;
+  color: rgb(236, 78, 78);
 }
 
 .text {
