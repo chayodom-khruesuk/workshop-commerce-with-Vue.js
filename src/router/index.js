@@ -23,6 +23,37 @@ const routes = [
         name: 'login',
         component: () => import('../views/Login.vue')
       },
+      {
+        path: '/profile',
+        name: 'profile',
+        component: () => import('../views/Profile.vue')
+      },
+      {
+        path: '/history',
+        name: 'history',
+        component: () => import('../views/History.vue')
+      },
+      {
+        path: '/product_create',
+        name: 'product_create',
+        component: () => import('../views/Products_create.vue')
+      },
+      {
+        path: '/product/:id',
+        name: 'product_detail',
+        component: () => import('../views/Product_detail.vue')
+      },
+      {
+        path: '/product/update/:id',
+        name: 'productUpdate',
+        component: () => import('../views/Product_update.vue')
+      },
+      {
+        path: '/cart',
+        name: 'cart',
+        component: () => import('../views/Carts.vue')
+      }
+      
     ]
   }
 ]
