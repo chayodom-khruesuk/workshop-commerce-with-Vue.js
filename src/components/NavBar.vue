@@ -2,34 +2,65 @@
   <div>
     <nav v-if="!isAuthPage" class="navbar">
       <div class="nav-content">
-        <div class="nav-brand">
-          <v-btn icon class="brand-icon">
-            <v-icon color="#A7121D" size="30px">rocket_launch</v-icon>
-          </v-btn>
+        <div class="nav-left">
+          <div class="d-flex align-center">
+            <v-btn
+              icon
+              class="mr-3 logo-btn"
+              color="primary"
+              @click="navigatorToHome"
+            >
+              <v-img src="../assets/icon_logo.png" class="nav-logo"></v-img>
+            </v-btn>
+            <span
+              style="color: white; font-size: 22px; font-weight: bold"
+              class="ml-2"
+            >
+              NETY SHOP
+            </span>
+          </div>
         </div>
 
-        <div class="nav-links">
+        <div class="nav-center">
+          <div class="search-container">
+            <v-text-field
+              v-model="searchQuery"
+              prepend-inner-icon="mdi-magnify"
+              placeholder="ค้นหาสินค้าที่ต้องการ"
+              outlined
+              dense
+              hide-details
+              class="search-input"
+              @keyup.enter="handleSearch"
+            ></v-text-field>
+          </div>
+        </div>
+
+        <div class="nav-right">
           <v-btn
+            v-if="username"
             text
-            :to="{ name: 'home' }"
             class="nav-btn"
-            :class="{ 'active-text': $route.name === 'home' }"
+            :to="{ name: 'product_create' }"
           >
-            <span class="btn-text">Home</span>
+            <v-icon left color="white" size="24">mdi-plus</v-icon>
+            <!-- Set consistent size and color -->
+            <span class="btn-text">Create Product</span>
+          </v-btn>
+
+          <v-btn text class="nav-btn" @click="handleCartClick">
+            <v-badge
+              :content="cartCount"
+              :value="username && cartCount"
+              color="error"
+              overlap
+            >
+              <v-icon left color="white" size="24">mdi-cart</v-icon>
+            </v-badge>
           </v-btn>
 
           <v-btn
-            text
-            :to="{ name: 'cal-grade' }"
-            class="nav-btn"
-            :class="{ 'active-text': $route.name === 'cal-grade' }"
-          >
-            <span class="btn-text">Calculate Grade</span>
-          </v-btn>
-
-          <!-- Replace login button with username display when logged in -->
-          <v-btn
-            v-if="!$store.state.username"
+            v-if="!username"
             text
             :to="{ name: 'login' }"
             class="nav-btn"
@@ -38,10 +69,60 @@
             <span class="btn-text">Login</span>
           </v-btn>
 
-          <v-btn v-else text class="nav-btn">
-            <v-icon left>mdi-account</v-icon>
-            <span class="btn-text">{{ $store.state.username }}</span>
-          </v-btn>
+          <v-menu
+            v-else
+            bottom
+            offset-y
+            transition="slide-y-transition"
+            :close-on-content-click="false"
+            :nudge-width="70"
+          >
+            <template v-slot:activator="{ on, attrs }">
+              <v-btn text class="nav-btn" v-bind="attrs" v-on="on">
+                <v-icon left color="white" size="24">mdi-account</v-icon>
+                <!-- Set consistent size and color -->
+                <span class="btn-text">{{ username }}</span>
+                <v-icon right color="white" size="24">mdi-chevron-down</v-icon>
+                <!-- Set consistent size and color -->
+              </v-btn>
+            </template>
+
+            <v-list>
+              <v-list-item :to="{ name: 'profile' }">
+                <v-list-item-icon>
+                  <v-icon color="#17bb5b" size="24">mdi-account-circle</v-icon>
+                  <!-- Set consistent size -->
+                </v-list-item-icon>
+                <v-list-item-title>Profile</v-list-item-title>
+              </v-list-item>
+
+              <v-list-item :to="{ name: 'history' }">
+                <v-list-item-icon>
+                  <v-icon color="#17bb5b" size="24">mdi-history</v-icon>
+                  <!-- Set consistent size -->
+                </v-list-item-icon>
+                <v-list-item-title>History</v-list-item-title>
+              </v-list-item>
+
+              <v-list-item :to="{ name: 'cal-grade' }">
+                <v-list-item-icon>
+                  <v-icon color="#17bb5b" size="24">mdi-star</v-icon>
+                  <!-- Set consistent size -->
+                </v-list-item-icon>
+                <v-list-item-title>Calculate Grade</v-list-item-title>
+              </v-list-item>
+
+              <v-divider></v-divider>
+
+              <v-list-item @click="logout">
+                <v-list-item-icon>
+                  <v-icon color="#17bb5b" size="24">mdi-logout</v-icon>
+                  <!-- Set consistent size -->
+                </v-list-item-icon>
+                <v-list-item-title>ออกจากระบบ</v-list-item-title>
+              </v-list-item>
+            </v-list>
+          </v-menu>
         </div>
       </div>
     </nav>
@@ -54,25 +135,67 @@
 <script>
 export default {
   name: "navbar",
+  data() {
+    return {
+      searchQuery: "",
+    };
+  },
+  created() {
+    this.$store.dispatch("initializeAuth");
+  },
   computed: {
     isAuthPage() {
       return ["login", "signup"].includes(this.$route.name);
     },
+    username() {
+      return this.$store.state.username;
+    },
+    cartCount() {
+      return this.$store.state.cart.length;
+    },
   },
   methods: {
-    scroll(RouteName) {
-      const element = document.getElementById(RouteName);
-      element.scrollIntoView({ behavior: "smooth" });
+    handleSearch() {
+      console.log("Searching for:", this.searchQuery);
+    },
+    logout() {
+      this.$store.dispatch("logout");
+      this.$router.push({ name: "login" });
+    },
+    handleCartClick() {
+      if (!this.username) {
+        this.$router.push("/login");
+      } else {
+        if (this.$route.path !== "/cart") {
+          this.$router.push("/cart");
+        }
+      }
+    },
+    async navigatorToHome() {
+      if (this.$route.path !== "/") {
+        this.$router.push("/");
+      }
     },
   },
 };
 </script>
 
 <style scoped>
+.nav-logo {
+  width: 220px;
+  height: 220px;
+  object-fit: contain;
+  margin-top: 10%;
+  margin-right: 20%;
+}
+
+.logo-btn::before {
+  display: none;
+}
+
 .navbar {
-  background-color: #1a1a1a;
-  padding: 12px 0;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  background-color: #17bb5b;
+  padding: 22px 0;
   position: fixed;
   width: 100%;
   top: 0;
@@ -82,14 +205,53 @@ export default {
 
 .nav-content {
   display: flex;
+  justify-content: space-between;
   align-items: center;
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 20px;
 }
 
-.nav-brand {
-  margin-right: 40px;
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.nav-center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  padding: 0 20px;
+}
+
+.search-container {
+  width: 100%;
+  max-width: 500px;
+}
+
+.search-input {
+  background-color: white !important;
+  border-radius: 8px;
+}
+
+.search-input .v-input__control {
+  border: none !important;
+}
+
+.search-input :deep(.v-input__slot) {
+  background-color: white !important;
+  border: none !important;
+}
+
+.search-input :deep(.v-text-field__details) {
+  display: none;
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
 }
 
 .brand-icon {
@@ -100,21 +262,24 @@ export default {
   transform: scale(1.1);
 }
 
-.nav-links {
-  display: flex;
-  gap: 20px;
-}
-
 .nav-btn {
+  background-color: #17bb5b !important;
+  color: white;
   position: relative;
   height: 40px;
   padding: 0 20px;
   border-radius: 8px;
   transition: all 0.3s ease;
+  background: transparent !important;
+  z-index: 1;
 }
 
 .nav-btn:hover {
-  background-color: rgba(167, 18, 29, 0.1);
+  background-color: rgba(23, 187, 91, 0.8);
+}
+
+.nav-btn::before {
+  display: none;
 }
 
 .btn-text {
@@ -125,12 +290,7 @@ export default {
 }
 
 .active-text {
-  background-color: rgba(167, 18, 29, 0.2);
-  color: #a7121d !important;
-}
-
-.active-text .btn-text {
-  color: #a7121d;
+  background-color: rgba(255, 255, 255, 0.2);
 }
 
 .content-wrapper {
