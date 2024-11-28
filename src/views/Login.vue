@@ -11,23 +11,47 @@
     <v-app-bar color="white" elevation="0">
       <v-container>
         <v-row align="center">
-          <v-col class="d-flex align-center">
+          <v-col class="d-flex align-center justify-evenly">
             <div class="d-flex align-center">
               <v-btn
                 v-if="isLoginMode"
                 icon
-                class="mr-4"
+                class="mr-3 logo-btn"
+                color="primary"
                 @click="navigatorToHome"
               >
-                <v-icon>mdi-home</v-icon>
+                <v-img
+                  src="../assets/icon_logo.png"
+                  class="nav-logo"
+                  style="
+                    filter: brightness(0) saturate(100%) invert(56%) sepia(74%)
+                      saturate(345%) hue-rotate(75deg) brightness(96%)
+                      contrast(95%);
+                  "
+                ></v-img>
               </v-btn>
-              <span
-                class
-                style="color: black; font-size: 22px; font-weight: bold"
-              >
-                {{ isLoginMode ? "เข้าสู่ระบบ" : "สมัครใหม่" }}
-              </span>
             </div>
+            <span
+              style="
+                color: #17bb5b;
+                font-size: 22px;
+                font-weight: bold;
+                margin-top: 14px;
+              "
+              class="mr-10"
+            >
+              NETY SHOP
+            </span>
+            <span
+              style="
+                color: black;
+                font-size: 22px;
+                font-weight: bold;
+                margin-top: 12px;
+              "
+            >
+              {{ isLoginMode ? "เข้าสู่ระบบ" : "สมัครใหม่" }}
+            </span>
           </v-col>
         </v-row>
       </v-container>
@@ -249,7 +273,7 @@ export default {
         console.error("Error:", error);
       }
     },
-    ...mapActions(["login", "logout"]),
+    ...mapActions(["login"]),
 
     async handleLogin() {
       try {
@@ -258,25 +282,29 @@ export default {
           username: this.formData.username,
           password: this.formData.password,
         });
+
         if (response.data.success) {
-          this.login(this.formData.username);
-          this.successMessage = "Login successful!";
-          this.successDialog = true;
-          setTimeout(() => {
-            this.$router.push("/");
-          }, 1500);
-        } else {
-          alert("เกิดข้อผิดพลาดในการเข้าสู่ระบบ");
+          localStorage.setItem("token", response.data.token);
+          localStorage.setItem("username", this.formData.username);
+
+          await this.$store.dispatch("login", this.formData.username);
+
+          this.$swal({
+            icon: "success",
+            title: "เข้าสู่ระบบสำเร็จ",
+            showConfirmButton: false,
+            timer: 1500,
+          });
+
+          this.$router.push("/");
         }
       } catch (error) {
         console.error("Error:", error);
-        alert("เกิดข้อผิดพลาด");
       } finally {
-        setTimeout(() => {
-          this.isLoading = false;
-        }, 1500);
+        this.isLoading = false;
       }
     },
+
     async handleSignup() {
       try {
         this.isLoading = true;
@@ -285,23 +313,27 @@ export default {
           password: this.formData.password,
           email: this.formData.email,
         });
+
         if (response.data.success) {
-          this.login();
-          this.successMessage = "create account successful!";
-          this.successDialog = true;
-          setTimeout(() => {
-            this.$router.push("/");
-          }, 1500);
-        } else {
-          alert("เกิดข้อผิดพลาดในการสร้างบัญชีผู้ใช้");
+          localStorage.setItem("token", response.data.token);
+          localStorage.setItem("username", this.formData.username);
+
+          await this.$store.dispatch("login", this.formData.username);
+
+          this.$swal({
+            icon: "success",
+            title: "สมัครสมาชิกสำเร็จ",
+            text: "ยินดีต้อนรับเข้าสู่ระบบ",
+            showConfirmButton: false,
+            timer: 1500,
+          });
+
+          this.$router.push("/");
         }
       } catch (error) {
         console.error("Error:", error);
-        alert("เกิดข้อผิดพลาด");
       } finally {
-        setTimeout(() => {
-          this.isLoading = false;
-        }, 1500);
+        this.isLoading = false;
       }
     },
   },
@@ -322,11 +354,20 @@ export default {
 </script>
 
 <style>
+.logo-btn {
+  box-shadow: none;
+}
+
+.nav-logo {
+  width: 200px;
+  height: 200px;
+  object-fit: contain;
+  margin-top: 20%;
+}
 .v-app-bar {
   min-height: 80px !important;
 }
 
-.login-btn,
 .signup-btn {
   font-size: 14px;
   font-weight: bold;
